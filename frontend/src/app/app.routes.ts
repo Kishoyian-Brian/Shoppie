@@ -1,9 +1,10 @@
 import { Routes } from '@angular/router';
 import { LandingPage } from './components/landingpage/landingpage';
 import { AdminProductComponent } from './components/admin-dashboard/admin-dashboard';
-import { Authorized } from './components/authorized/authorized';
 import { Login } from './components/login/login';
 import { Shop } from './components/shop/shop';
+import {AuthGuard} from './components/guards/auth.guard';
+import {RoleGuard} from './components/guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -14,6 +15,7 @@ export const routes: Routes = [
   {
     path: 'landingpage',
     component: LandingPage,
+    canActivate: [AuthGuard]
   },
   {
     path: 'shop',
@@ -22,11 +24,10 @@ export const routes: Routes = [
   {
     path: 'admin-dashboard',
     component: AdminProductComponent,
+    canActivate: [AuthGuard,RoleGuard],
+    data:{roles:['admin']}
   },
-  {
-    path: 'authorized',
-    component: Authorized,
-  },
+
   {
     path: 'login',
     component: Login,
@@ -36,3 +37,4 @@ export const routes: Routes = [
     redirectTo: 'landingpage'
   }
 ];
+
