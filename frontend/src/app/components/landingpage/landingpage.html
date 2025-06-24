@@ -1,0 +1,85 @@
+<!-- Navbar -->
+<nav class="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="flex justify-between items-center h-16">
+      <div class="flex items-center space-x-4">
+        <h1 class="text-2xl font-bold text-orange-600 cursor-pointer" (click)="navigateTo('/landingpage')">
+          🛒 Shopie
+        </h1>
+      </div>
+      <div class="hidden md:flex items-center space-x-1 text-sm font-medium text-gray-700">
+        <button (click)="navigateTo('/shop')" class="px-4 py-2 rounded hover:bg-gray-100 transition">
+          Shop Now
+        </button>
+        <button (click)="navigateTo('/cart')" class="px-4 py-2 rounded hover:bg-gray-100 transition">
+          Cart
+        </button>
+        <button (click)="navigateTo('/login')" class="px-4 py-2 rounded hover:bg-gray-100 transition">
+          Login
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="bg-gradient-to-br from-orange-100 to-pink-100 py-16 text-center">
+  <div class="max-w-3xl mx-auto px-4">
+    <h2 class="text-4xl font-extrabold text-gray-800">Welcome to Shopie</h2>
+    <p class="mt-4 text-lg text-gray-600">Your one-stop shop for everything trendy and affordable.</p>
+    <button
+      (click)="navigateTo('/shop')"
+      class="mt-6 px-6 py-3 bg-orange-600 text-white font-medium rounded hover:bg-orange-700 transition">
+      Start Shopping
+    </button>
+  </div>
+</section>
+
+<!-- Feature Stats -->
+<section class="py-12 bg-white">
+  <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-center">
+    <div class="p-6 bg-orange-50 rounded-lg shadow">
+      <div class="text-3xl font-bold text-orange-600">2,450+</div>
+      <div class="mt-2 text-sm text-gray-700">Happy Customers</div>
+    </div>
+    <div class="p-6 bg-green-50 rounded-lg shadow">
+      <div class="text-3xl font-bold text-green-600">1,000+</div>
+      <div class="mt-2 text-sm text-gray-700">Products in Stock</div>
+    </div>
+    <div class="p-6 bg-blue-50 rounded-lg shadow">
+      <div class="text-3xl font-bold text-blue-600">24/7</div>
+      <div class="mt-2 text-sm text-gray-700">Customer Support</div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Products -->
+<section class="py-16 bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4">
+    <h2 class="text-3xl font-bold text-center text-gray-800 mb-10">Trending Products</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+      <ng-container *ngFor="let product of products">
+        <div class="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden">
+          <img [src]="product.image" alt="product" class="w-full h-48 object-cover" />
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-gray-800">{{ product.name }}</h3>
+            <p class="text-sm text-gray-500 mt-1">{{ product.description }}</p>
+            <p class="text-orange-600 font-bold mt-2">{{ product.price }}</p>
+            <button
+              (click)="navigateTo('/shop')"
+              class="mt-4 w-full bg-orange-600 text-white py-2 rounded hover:bg-orange-700 transition">
+              Buy Now
+            </button>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-white border-t mt-20 py-6">
+  <div class="max-w-7xl mx-auto px-4 text-center text-sm text-gray-600">
+    &copy; 2025 Shopie. All rights reserved.
+  </div>
+</footer>
