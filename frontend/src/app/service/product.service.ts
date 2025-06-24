@@ -13,6 +13,22 @@ export interface Product {
   updatedAt: Date;
 }
 
+export interface CreateProductDto {
+  name: string;
+  description: string;
+  price: number;
+  imageUrl?: string;
+  stockQuantity: number;
+}
+
+export interface UpdateProductDto {
+  name?: string;
+  description?: string;
+  price?: number;
+  imageUrl?: string;
+  stockQuantity?: number;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   message: string;
@@ -49,5 +65,30 @@ export class ProductsService {
    */
   searchProducts(query: string): Observable<ApiResponse<Product[]>> {
     return this.http.get<ApiResponse<Product[]>>(`${this.apiUrl}/search/${query}`);
+  }
+
+  /**
+   * Create a new product
+   * @param product Product data
+   */
+  createProduct(product: CreateProductDto): Observable<ApiResponse<Product>> {
+    return this.http.post<ApiResponse<Product>>(this.apiUrl, product);
+  }
+
+  /**
+   * Update an existing product
+   * @param id Product ID
+   * @param product Updated product data
+   */
+  updateProduct(id: string, product: UpdateProductDto): Observable<ApiResponse<Product>> {
+    return this.http.put<ApiResponse<Product>>(`${this.apiUrl}/${id}`, product);
+  }
+
+  /**
+   * Delete a product by ID
+   * @param id Product ID
+   */
+  deleteProduct(id: string): Observable<ApiResponse<null>> {
+    return this.http.delete<ApiResponse<null>>(`${this.apiUrl}/${id}`);
   }
 }

@@ -1,85 +1,132 @@
-<!-- Navbar -->
-<nav class="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
-  <div class="max-w-7xl mx-auto px-4">
-    <div class="flex justify-between items-center h-16">
-      <div class="flex items-center space-x-4">
-        <h1 class="text-2xl font-bold text-orange-600 cursor-pointer" (click)="navigateTo('/landingpage')">
-          🛒 Shopie
-        </h1>
-      </div>
-      <div class="hidden md:flex items-center space-x-1 text-sm font-medium text-gray-700">
-        <button (click)="navigateTo('/shop')" class="px-4 py-2 rounded hover:bg-gray-100 transition">
-          Shop Now
-        </button>
-        <button (click)="navigateTo('/cart')" class="px-4 py-2 rounded hover:bg-gray-100 transition">
-          Cart
-        </button>
-        <button (click)="navigateTo('/login')" class="px-4 py-2 rounded hover:bg-gray-100 transition">
-          Login
-        </button>
-      </div>
-    </div>
-  </div>
-</nav>
+<!-- src/app/components/landingpage/landingpage.html -->
+<div class="min-h-screen bg-gray-100">
+  <!-- Top Navigation -->
+  <nav class="bg-orange-500">
+    <div class="container mx-auto px-4">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo -->
+        <a href="#" class="text-white text-2xl font-bold">Ashopie</a>
 
-<!-- Hero Section -->
-<section class="bg-gradient-to-br from-orange-100 to-pink-100 py-16 text-center">
-  <div class="max-w-3xl mx-auto px-4">
-    <h2 class="text-4xl font-extrabold text-gray-800">Welcome to Shopie</h2>
-    <p class="mt-4 text-lg text-gray-600">Your one-stop shop for everything trendy and affordable.</p>
-    <button
-      (click)="navigateTo('/shop')"
-      class="mt-6 px-6 py-3 bg-orange-600 text-white font-medium rounded hover:bg-orange-700 transition">
-      Start Shopping
-    </button>
-  </div>
-</section>
-
-<!-- Feature Stats -->
-<section class="py-12 bg-white">
-  <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-center">
-    <div class="p-6 bg-orange-50 rounded-lg shadow">
-      <div class="text-3xl font-bold text-orange-600">2,450+</div>
-      <div class="mt-2 text-sm text-gray-700">Happy Customers</div>
-    </div>
-    <div class="p-6 bg-green-50 rounded-lg shadow">
-      <div class="text-3xl font-bold text-green-600">1,000+</div>
-      <div class="mt-2 text-sm text-gray-700">Products in Stock</div>
-    </div>
-    <div class="p-6 bg-blue-50 rounded-lg shadow">
-      <div class="text-3xl font-bold text-blue-600">24/7</div>
-      <div class="mt-2 text-sm text-gray-700">Customer Support</div>
-    </div>
-  </div>
-</section>
-
-<!-- Featured Products -->
-<section class="py-16 bg-gray-50">
-  <div class="max-w-7xl mx-auto px-4">
-    <h2 class="text-3xl font-bold text-center text-gray-800 mb-10">Trending Products</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-      <ng-container *ngFor="let product of products">
-        <div class="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden">
-          <img [src]="product.image" alt="product" class="w-full h-48 object-cover" />
-          <div class="p-4">
-            <h3 class="text-lg font-semibold text-gray-800">{{ product.name }}</h3>
-            <p class="text-sm text-gray-500 mt-1">{{ product.description }}</p>
-            <p class="text-orange-600 font-bold mt-2">{{ product.price }}</p>
-            <button
-              (click)="navigateTo('/shop')"
-              class="mt-4 w-full bg-orange-600 text-white py-2 rounded hover:bg-orange-700 transition">
-              Buy Now
+        <!-- Search Bar -->
+        <div class="flex-1 max-w-2xl mx-6">
+          <div class="relative">
+            <input
+              type="text"
+              [(ngModel)]="searchTerm"
+              (input)="filterProducts()"
+              class="w-full px-4 py-2 rounded-md focus:outline-none"
+              placeholder="Search for products..."
+            >
+            <button class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-orange-600 text-white px-4 py-1 rounded-md">
+              Search
             </button>
           </div>
         </div>
-      </ng-container>
-    </div>
-  </div>
-</section>
 
-<!-- Footer -->
-<footer class="bg-white border-t mt-20 py-6">
-  <div class="max-w-7xl mx-auto px-4 text-center text-sm text-gray-600">
-    &copy; 2025 Shopie. All rights reserved.
-  </div>
-</footer>
+        <!-- Navigation Links -->
+        <!-- src/app/components/landingpage/landingpage.html -->
+        <div class="flex space-x-6">
+          <a routerLink="/shop"
+             class="text-white hover:text-orange-200">
+            Shop Now
+          </a>
+          <a routerLink="/login"
+             class="text-white hover:text-orange-200">
+            Account
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container mx-auto px-4 py-8">
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex justify-center items-center h-64">
+      <div class="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent"></div>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="text-red-600 text-center py-4">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Products Grid -->
+    <div *ngIf="!isLoading && !errorMessage" class="space-y-8">
+      <h1 class="text-2xl font-bold text-gray-800">Featured Products</h1>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+        <div *ngFor="let product of filteredProducts"
+             class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+          <div class="aspect-w-1 aspect-h-1">
+            <img [src]="product.imageUrl"
+                 [alt]="product.name"
+                 class="w-full h-48 object-cover">
+          </div>
+          <div class="p-4">
+            <h3 class="text-sm text-gray-700 font-medium line-clamp-2">{{ product.name }}</h3>
+            <p class="mt-2 text-lg font-bold text-orange-600">KES {{ product.price }}</p>
+            <button (click)="navigateToProduct(product.id)"
+                    class="mt-4 w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 transition-colors duration-300">
+              View Product
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 text-white mt-12">
+    <div class="container mx-auto px-4 py-12">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <!-- Customer Service -->
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Customer Service</h3>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-gray-300 hover:text-white">Help Center</a></li>
+            <li><a href="#" class="text-gray-300 hover:text-white">How to Buy</a></li>
+            <li><a href="#" class="text-gray-300 hover:text-white">Returns & Refunds</a></li>
+            <li><a href="#" class="text-gray-300 hover:text-white">Contact Us</a></li>
+          </ul>
+        </div>
+
+        <!-- About -->
+        <div>
+          <h3 class="text-lg font-semibold mb-4">About Ashopie</h3>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-gray-300 hover:text-white">About Us</a></li>
+            <li><a href="#" class="text-gray-300 hover:text-white">Careers</a></li>
+            <li><a href="#" class="text-gray-300 hover:text-white">Terms & Conditions</a></li>
+            <li><a href="#" class="text-gray-300 hover:text-white">Privacy Policy</a></li>
+          </ul>
+        </div>
+
+        <!-- Make Money -->
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Make Money with Us</h3>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-gray-300 hover:text-white">Sell on Ashopie</a></li>
+            <li><a href="#" class="text-gray-300 hover:text-white">Become an Affiliate</a></li>
+            <li><a href="#" class="text-gray-300 hover:text-white">Advertise Your Products</a></li>
+          </ul>
+        </div>
+
+        <!-- Payment Methods -->
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Payment Methods</h3>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-gray-300 hover:text-white">Credit/Debit Card</a></li>
+            <li><a href="#" class="text-gray-300 hover:text-white">Mobile Money</a></li>
+            <li><a href="#" class="text-gray-300 hover:text-white">Pay on Delivery</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mt-12 pt-8 border-t border-gray-700 text-center text-gray-400">
+        &copy; 2025 Ashopie. All Rights Reserved.
+      </div>
+    </div>
+  </footer>
+</div>

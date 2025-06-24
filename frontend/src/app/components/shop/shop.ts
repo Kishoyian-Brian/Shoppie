@@ -7,7 +7,7 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-products',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './products.component.html'
+  templateUrl: './shop.html'
 })
 export class ProductsComponent implements OnInit {
   products: Product[] = [];

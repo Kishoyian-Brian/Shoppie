@@ -1,51 +1,53 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
+import { ProductsService, Product } from '../../service/product.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'app-landingpage',
+  selector: 'app-landing-page',
   templateUrl: './landingpage.html',
   styleUrls: ['./landingpage.css'],
   standalone: true,
-  imports: [CommonModule], 
+  imports: [CommonModule, FormsModule, RouterLink]
 })
-export class Landingpage implements OnInit {
-  products = [
-    {
-      name: 'Wireless Earbuds',
-      description: 'High quality sound and Bluetooth 5.0',
-      price: '$49',
-      image: 'https://source.unsplash.com/400x300/?earbuds',
-    },
-    {
-      name: 'Smart Watch',
-      description: 'Track fitness and receive notifications',
-      price: '$89',
-      image: 'https://source.unsplash.com/400x300/?watch',
-    },
-    {
-      name: 'Running Shoes',
-      description: 'Comfortable and durable for all terrains',
-      price: '$69',
-      image: 'https://source.unsplash.com/400x300/?shoes',
-    },
-    {
-      name: 'Laptop Backpack',
-      description: 'Stylish and waterproof for 15-inch laptops',
-      price: '$39',
-      image: 'https://source.unsplash.com/400x300/?backpack',
-    },
-  ];
+export class LandingPage implements OnInit {
+  products: Product[] = [];
+  filteredProducts: Product[] = [];
+  isLoading = false;
+  errorMessage = '';
+  searchTerm = '';
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private productService: ProductsService) {}
 
-  ngOnInit(): void {}
-
-  navigateTo(path: string) {
-    this.router.navigate([path]);
+  ngOnInit(): void {
+    this.loadProducts();
   }
 
-  isActiveRoute(path: string): boolean {
-    return this.router.url === path;
+  loadProducts(): void {
+    this.isLoading = true;
+    this.productService.getAllProducts().subscribe({
+      next: (res) => {
+        this.products = res.data || [];
+        this.filteredProducts = this.products;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.errorMessage = 'Failed to load products. Please try again later.';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  filterProducts(): void {
+    const term = this.searchTerm.toLowerCase().trim();
+    this.filteredProducts = this.products.filter(product =>
+      product.name.toLowerCase().includes(term) ||
+      product.description.toLowerCase().includes(term)
+    );
+  }
+
+  navigateToProduct(productId: string): void {
+    this.router.navigate(['/product', productId]);
   }
 }
