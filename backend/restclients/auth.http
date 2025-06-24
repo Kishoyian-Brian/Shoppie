@@ -5,9 +5,9 @@ POST {{baseurl}}/auth/register
 Content-Type: application/json
 
 {
-  "email": "maxmillianmuiruri@gmail.com",
-  "password":"maxUser123",
-  "name": "Max User"
+  "email": "brianmwangiat@gmail.com",
+  "password":"123456",
+  "name": "brianx"
 }
 
 ### Login
@@ -15,8 +15,8 @@ POST {{baseurl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "maxmillianmuiruri@gmail.com",
-  "password": "maxUser123"
+  "email": "brianx@gmail.com",
+  "password": "123456"
   
 }
 
@@ -42,8 +42,8 @@ POST {{baseurl}}/auth/admin/create
 Content-Type: application/json
 
 {
-  "email": "brianmwasbayo@gmail.com",
-  "password": "Adminpass123",
+  "email": "kishoyianbrianmwangi@gmail.com",
+  "password": "1234567890",
   "name": "Admin"
 }
 
