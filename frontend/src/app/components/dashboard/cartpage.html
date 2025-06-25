@@ -1,0 +1,21 @@
+<div class="cart-container">
+  <h2>Your Cart</h2>
+  <div *ngIf="cartItems.length === 0" class="empty-cart">
+    Your cart is empty.
+  </div>
+  <div *ngFor="let item of cartItems" class="cart-item-card">
+    <div class="item-info">
+      <div class="item-name">{{ item.name }}</div>
+      <div class="item-price">\${{ item.price.toFixed(2) }}</div>
+      <div class="item-quantity">
+        Quantity:
+        <input type="number" [(ngModel)]="item.quantity" (change)="updateQuantity(item.productId, item.quantity)" min="0" />
+      </div>
+    </div>
+  </div>
+  <div class="order-actions" *ngIf="cartItems.length > 0">
+    <button (click)="placeOrder()" [disabled]="isPlacingOrder">Place Order</button>
+  </div>
+  <div class="order-success" *ngIf="orderSuccessMessage">{{ orderSuccessMessage }}</div>
+  <div class="order-error" *ngIf="orderErrorMessage">{{ orderErrorMessage }}</div>
+</div>

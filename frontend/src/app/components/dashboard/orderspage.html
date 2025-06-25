@@ -1,0 +1,25 @@
+<div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md font-sans">
+  <h2 class="text-2xl font-bold mb-6">Your Orders</h2>
+  <div *ngIf="orders.length === 0" class="text-gray-500 italic mb-4">
+    You have not placed any orders yet.
+  </div>
+  <div *ngFor="let order of orders" class="mb-6 border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+    <div class="flex justify-between font-semibold mb-3 text-gray-700">
+      <div>Order Number: {{ order.orderNumber }}</div>
+      <div>Status: <span class="capitalize">{{ order.status }}</span></div>
+      <div>Date: {{ order.createdAt | date:'mediumDate' }}</div>
+      <div>Total: ${{ order.totalAmount.toFixed(2) }}</div>
+    </div>
+    <div class="border-t border-gray-100 pt-3">
+      <div *ngFor="let item of order.items" class="flex items-center mb-3">
+        <img [src]="item.image" alt="{{ item.productName }}" class="w-16 h-16 rounded-md object-cover mr-4" />
+        <div>
+          <div class="font-semibold text-lg">{{ item.productName }}</div>
+          <div class="text-gray-600">Quantity: {{ item.quantity }}</div>
+          <div class="text-gray-600">Price: ${{ item.price.toFixed(2) }}</div>
+          <div class="text-gray-600">Total: ${{ item.totalPrice.toFixed(2) }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

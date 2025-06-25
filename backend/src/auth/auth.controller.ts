@@ -8,7 +8,6 @@ import {
 } from './dto/reset-password.dto';
 import { RoleGuard } from './guards/role-guard/role-guard.guard';
 import { Roles } from './decorators/role.decorator';
-import { JwtAuthGuard } from './guards/jwt-guard/jwt-guard.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -38,10 +37,17 @@ export class AuthController {
   }
 
   @Post('admin/create')
-  @UseGuards(RoleGuard, JwtAuthGuard)
+  @UseGuards(RoleGuard)
   @Roles('ADMIN')
   @HttpCode(201)
   async createAdmin(@Body() adminData: RegisterDto) {
+    return this.authService.createAdmin(adminData);
+  }
+
+  // New public admin registration endpoint
+  @Post('admin/register')
+  @HttpCode(201)
+  async publicRegisterAdmin(@Body() adminData: RegisterDto) {
     return this.authService.createAdmin(adminData);
   }
 }

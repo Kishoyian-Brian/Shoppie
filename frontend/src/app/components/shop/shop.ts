@@ -1,16 +1,19 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { ProductsService, Product, ApiResponse } from '../../service/product.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { CartService, CartItem } from '../../service/cart.service';
 
 @Component({
   selector: 'app-shop',
   templateUrl: './shop.html',
   styleUrls: ['./shop.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule, RouterModule]
 })
 export class Shop implements OnInit {
   products: Product[] = [];
@@ -18,11 +21,11 @@ export class Shop implements OnInit {
   isLoading = false;
   errorMessage = '';
   searchTerm = '';
-  priceFilter = 1000;
+  filterBy = '';
   sortBy = 'priceLow';
   fallbackImage = 'assets/placeholder-image.png';
 
-  constructor(private productService: ProductsService) {}
+  constructor(private productService: ProductsService, private router: Router, private cartService: CartService) {}
 
   ngOnInit(): void {
     this.loadProducts();
@@ -84,15 +87,13 @@ export class Shop implements OnInit {
         const matchesSearch = !this.searchTerm ||
           product.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
           product.description.toLowerCase().includes(this.searchTerm.toLowerCase());
-        const matchesPrice = product.price <= this.priceFilter;
-        return matchesSearch && matchesPrice;
+        return matchesSearch;
       });
     this.sortProducts();
   }
 
   resetFilters(): void {
     this.searchTerm = '';
-    this.priceFilter = 1000;
     this.sortBy = 'priceLow';
     this.filteredProducts = [...this.products];
     this.applyFilters();
@@ -121,11 +122,24 @@ export class Shop implements OnInit {
   }
 
   addToCart(product: Product): void {
-    // Implement your cart logic here
-    console.log('Adding to cart:', product);
+    const cartItem = {
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      imageUrl: product.imageUrl,
+    };
+    // Assuming you have a CartService injected, add the product to the cart
+    // If CartService is not injected, inject it in the constructor first
+    this.cartService.addToCart(cartItem);
+    alert(`${product.name} has been added to your cart.`);
   }
 
   isOutOfStock(product: Product): boolean {
     return product.stockQuantity <= 0;
+  }
+
+  goToAccount(): void {
+    this.router.navigate(['/account']);
   }
 }

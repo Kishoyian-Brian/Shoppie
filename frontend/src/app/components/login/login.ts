@@ -1,105 +1,87 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthService } from '../../service/auth';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../service/auth';
+
 @Component({
-  selector: 'app-shop-auth',
+  selector: 'app-login',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './login.html',
+  styleUrls: ['./login.css']
 })
 export class Login {
-  isLoginMode = true;
+  email = '';
+  password = '';
   isLoading = false;
   error: string | null = null;
+  registrationSuccessMessage: string | null = null;
 
-  loginData = {
-    email: '',
-    password: '',
-  };
-
+  isLoginMode = true;
   registerData = {
     name: '',
     email: '',
-    password: '',
+    password: ''
   };
 
-  constructor(
-    private router: Router,
-    private authService: AuthService
-  ) {
-  }
+  constructor(private authService: AuthService, private router: Router) {}
 
-  toggleMode() {
-    this.error = null;
-    this.isLoginMode = !this.isLoginMode;
-  }
-
-  onLogin() {
+  onLogin(): void {
+    console.log('Login attempt with email:', this.email);
     this.isLoading = true;
     this.error = null;
 
-    this.authService.login(this.loginData).subscribe({
+    this.authService.login({ email: this.email, password: this.password }).subscribe({
       next: (response) => {
+        console.log('Login response:', response);
         if (response.message === 'Login successful' && response.user) {
-          // Add a console log to debug the user role
-          console.log('User role:', response.user.role);
-
-          switch(response.user.role.toLowerCase()) {
-            case 'admin':
-              this.router.navigate(['/admin-dashboard']);
-              break;
-            case 'user':
-              this.router.navigate(['/landingpage']);
-              break;
-            default:
-              // Handle any unexpected role
-              console.warn('Unexpected user role:', response.user.role);
-              this.router.navigate(['/landingpage']);
-          }
+          console.log('Login successful, navigation should happen');
+          // Navigation handled in auth service redirectBasedOnRole
+          this.isLoading = false;
         } else {
           this.error = response.message || 'Login failed';
+          this.isLoading = false;
         }
       },
-      error: (error) => {
-        this.isLoading = false;
-        console.error('Login error:', error);
-        this.error = error.error?.message || 'An error occurred during login';
-      },
-      complete: () => {
+      error: (err) => {
+        console.error('Login error:', err);
+        this.error = err.error?.message || 'An error occurred during login';
         this.isLoading = false;
       }
     });
   }
 
-  onRegister() {
+  onRegister(): void {
+    console.log('Register attempt with data:', this.registerData);
     this.isLoading = true;
     this.error = null;
+    this.registrationSuccessMessage = null;
 
     this.authService.signup(this.registerData).subscribe({
       next: (response) => {
+        console.log('Register response:', response);
         if (response.message === 'User registered successfully') {
-          this.isLoginMode = true; // Switch to login mode
-          // Clear the registration form
-          this.registerData = {
-            name: '',
-            email: '',
-            password: '',
-          };
-          // You might want to show a success message
-          this.error = 'Registration successful! Please log in.';
+          this.error = null;
+          this.isLoading = false;
+          this.registrationSuccessMessage = 'Registration successful! A confirmation email has been sent to your email address.';
+          this.isLoginMode = true; // Switch to login mode after successful registration
         } else {
           this.error = response.message || 'Registration failed';
+          this.isLoading = false;
         }
       },
-      error: (error) => {
-        this.isLoading = false;
-        this.error = error.error?.message || 'An error occurred during registration';
-      },
-      complete: () => {
+      error: (err) => {
+        console.error('Registration error:', err);
+        this.error = err.error?.message || 'An error occurred during registration';
         this.isLoading = false;
       }
     });
+  }
+
+  toggleMode(): void {
+    this.isLoginMode = !this.isLoginMode;
+    this.error = null;
+    this.registrationSuccessMessage = null;
   }
 }

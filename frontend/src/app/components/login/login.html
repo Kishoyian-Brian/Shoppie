@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gradient-to-br  flex items-center justify-center px-4">
+<div class="min-h-screen bg-gradient-to-br flex items-center justify-center px-4">
   <div class="max-w-md w-full space-y-8">
 
     <!-- Header -->
@@ -19,10 +19,10 @@
     <!-- Form Card -->
     <div class="bg-white rounded-lg shadow-xl p-6">
       <form *ngIf="isLoginMode" (ngSubmit)="onLogin()" class="space-y-5" #loginForm="ngForm">
-        <input type="email" name="email" [(ngModel)]="loginData.email" required placeholder="Email"
+        <input type="email" name="email" [(ngModel)]="email" required placeholder="Email"
           class="w-full px-3 py-2 border rounded focus:ring-orange-500 focus:border-orange-500" />
 
-        <input type="password" name="password" [(ngModel)]="loginData.password" required placeholder="Password"
+        <input type="password" name="password" [(ngModel)]="password" required placeholder="Password"
           class="w-full px-3 py-2 border rounded focus:ring-orange-500 focus:border-orange-500" />
 
         <button type="submit" class="w-full py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition">

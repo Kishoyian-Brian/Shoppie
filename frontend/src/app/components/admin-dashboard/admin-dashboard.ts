@@ -24,6 +24,7 @@ export class AdminProductComponent implements OnInit {
   };
   selectedProduct: Product | null = null;
   showModal = false;
+  imageFile: File | null = null;
 
   constructor(private productService: ProductsService) {}
 
@@ -55,12 +56,14 @@ export class AdminProductComponent implements OnInit {
       imageUrl: '',
       stockQuantity: 0
     };
+    this.imageFile = null;
     this.showModal = true;
   }
 
   editProduct(product: Product): void {
     this.selectedProduct = product;
     this.form = { ...product };
+    this.imageFile = null;
     this.showModal = true;
   }
 
@@ -74,12 +77,29 @@ export class AdminProductComponent implements OnInit {
       stockQuantity: 0
     };
     this.selectedProduct = null;
+    this.imageFile = null;
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.imageFile = input.files[0];
+    }
   }
 
   onSubmit(): void {
+    const formData = new FormData();
+    formData.append('name', this.form.name || '');
+    formData.append('description', this.form.description || '');
+    formData.append('price', this.form.price !== undefined ? this.form.price.toString() : '0');
+    formData.append('stock', this.form.stockQuantity !== undefined ? this.form.stockQuantity.toString() : '0');
+    if (this.imageFile) {
+      formData.append('image', this.imageFile);
+    }
+
     if (this.selectedProduct) {
       // update
-      this.productService.updateProduct(this.selectedProduct.id, this.form).subscribe({
+      this.productService.updateProduct(this.selectedProduct.id, formData as any).subscribe({
         next: () => {
           this.loadProducts();
           this.closeModal();
@@ -88,7 +108,7 @@ export class AdminProductComponent implements OnInit {
       });
     } else {
       // create
-      this.productService.createProduct(this.form as CreateProductDto).subscribe({
+      this.productService.createProduct(formData as any).subscribe({
         next: () => {
           this.loadProducts();
           this.closeModal();

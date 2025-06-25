@@ -3,8 +3,9 @@ import { LandingPage } from './components/landingpage/landingpage';
 import { AdminProductComponent } from './components/admin-dashboard/admin-dashboard';
 import { Login } from './components/login/login';
 import { Shop } from './components/shop/shop';
-import {AuthGuard} from './components/guards/auth.guard';
-import {RoleGuard} from './components/guards/role.guard';
+import { CartPage } from './components/dashboard/cartpage';
+import { Dashboard } from './components/dashboard/dashboard';
+import { PaymentPage } from './components/dashboard/paymentpage';
 
 export const routes: Routes = [
   {
@@ -15,7 +16,6 @@ export const routes: Routes = [
   {
     path: 'landingpage',
     component: LandingPage,
-    canActivate: [AuthGuard]
   },
   {
     path: 'shop',
@@ -23,11 +23,21 @@ export const routes: Routes = [
   },
   {
     path: 'admin-dashboard',
-    component: AdminProductComponent,
-    canActivate: [AuthGuard,RoleGuard],
-    data:{roles:['admin']}
+    component: AdminProductComponent
+    
   },
-
+  {
+    path: 'dashboard',
+    component: Dashboard,
+  },
+  {
+    path: 'dashboard/cart',
+    component: CartPage,
+  },
+  {
+    path: 'dashboard/payment',
+    component: PaymentPage,
+  },
   {
     path: 'login',
     component: Login,

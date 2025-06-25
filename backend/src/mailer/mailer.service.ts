@@ -147,6 +147,19 @@ export class MailerService {
     return this.sendEmail(emailOptions);
   }
 
+  async sendRegistrationEmail(
+    to: string,
+    context: { name: string },
+  ): Promise<{ success: boolean; messageId?: string; error?: string }> {
+    const emailOptions: EmailOptions = {
+      to,
+      subject: 'ShopieApp - Welcome to Shopie',
+      template: 'registration',
+      context,
+    };
+    return this.sendEmail(emailOptions);
+  }
+
   private async renderTemplate(
     templateName: string,
     context: Record<string, any>,

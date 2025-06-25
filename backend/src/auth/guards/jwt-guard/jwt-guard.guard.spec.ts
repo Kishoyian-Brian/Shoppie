@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { JwtGuardGuard } from './jwt-guard.guard';
 
 describe('JwtGuardGuard', () => {

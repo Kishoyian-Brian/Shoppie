@@ -71,8 +71,12 @@ export class ProductsService {
    * Create a new product
    * @param product Product data
    */
-  createProduct(product: CreateProductDto): Observable<ApiResponse<Product>> {
-    return this.http.post<ApiResponse<Product>>(this.apiUrl, product);
+  createProduct(product: CreateProductDto | FormData): Observable<ApiResponse<Product>> {
+    if (product instanceof FormData) {
+      return this.http.post<ApiResponse<Product>>(this.apiUrl, product);
+    } else {
+      return this.http.post<ApiResponse<Product>>(this.apiUrl, product);
+    }
   }
 
   /**
@@ -80,8 +84,12 @@ export class ProductsService {
    * @param id Product ID
    * @param product Updated product data
    */
-  updateProduct(id: string, product: UpdateProductDto): Observable<ApiResponse<Product>> {
-    return this.http.put<ApiResponse<Product>>(`${this.apiUrl}/${id}`, product);
+  updateProduct(id: string, product: UpdateProductDto | FormData): Observable<ApiResponse<Product>> {
+    if (product instanceof FormData) {
+      return this.http.put<ApiResponse<Product>>(`${this.apiUrl}/${id}`, product);
+    } else {
+      return this.http.put<ApiResponse<Product>>(`${this.apiUrl}/${id}`, product);
+    }
   }
 
   /**

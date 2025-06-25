@@ -3,6 +3,7 @@ import {Router, RouterLink} from '@angular/router';
 import { ProductsService, Product } from '../../service/product.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { CartService, CartItem } from '../../service/cart.service';
 
 @Component({
   selector: 'app-landing-page',
@@ -18,7 +19,7 @@ export class LandingPage implements OnInit {
   errorMessage = '';
   searchTerm = '';
 
-  constructor(private router: Router, private productService: ProductsService) {}
+  constructor(private router: Router, private productService: ProductsService, private cartService: CartService) {}
 
   ngOnInit(): void {
     this.loadProducts();
@@ -49,5 +50,17 @@ export class LandingPage implements OnInit {
 
   navigateToProduct(productId: string): void {
     this.router.navigate(['/product', productId]);
+  }
+
+  addToCart(product: Product): void {
+    const cartItem: CartItem = {
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      imageUrl: product.imageUrl,
+    };
+    this.cartService.addToCart(cartItem);
+    alert(`${product.name} has been added to your cart.`);
   }
 }

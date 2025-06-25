@@ -26,7 +26,7 @@ export class AuthService {
     private jwtService: JwtService,
     private apiResponse: ApiResponseService,
     private mailerService: MailerService,
-  ) {}
+  ) { }
 
   async register(registerDto: RegisterDto) {
     try {
@@ -65,6 +65,11 @@ export class AuthService {
         role: user.role,
         createdAt: user.createdAt,
       };
+
+      // Send registration email
+      await this.mailerService.sendRegistrationEmail(user.email, {
+        name: user.name ?? 'User',
+      });
 
       return this.apiResponse.created(response, 'User registered successfully');
     } catch (error) {
