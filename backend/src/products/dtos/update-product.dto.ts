@@ -31,5 +31,10 @@ export class UpdateProductDto {
   @IsNumber({}, { message: 'Stock must be a number' })
   @Min(0, { message: 'Stock cannot be negative' })
   stock?: number;
+
+  @IsOptional()
+  @IsString()
+  category?: string;
+
   image: any;
 }

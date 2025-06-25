@@ -36,6 +36,7 @@ export class ProductsController {
     @Body('description') description: string,
     @Body('price', ParseFloatPipe) price: number,
     @Body('stock', ParseIntPipe) stock: number,
+    @Body('category') category: string,
     @Body('image') imageUrl?: string,
     @UploadedFile() file?: Express.Multer.File,
   ) {
@@ -44,6 +45,7 @@ export class ProductsController {
       description,
       price,
       stock,
+      category,
       image: imageUrl,
     };
     return this.productsService.create(createProductDto, file);

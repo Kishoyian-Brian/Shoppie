@@ -26,7 +26,7 @@ export class AuthService {
     private jwtService: JwtService,
     private apiResponse: ApiResponseService,
     private mailerService: MailerService,
-  ) { }
+  ) {}
 
   async register(registerDto: RegisterDto) {
     try {

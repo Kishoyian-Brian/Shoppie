@@ -32,4 +32,8 @@ export class CreateProductDto {
   @IsNumber({}, { message: 'Stock must be a number' })
   @Min(0, { message: 'Stock cannot be negative' })
   stock: number;
+
+  @IsNotEmpty({ message: 'Category is required' })
+  @IsString()
+  category: string;
 }
