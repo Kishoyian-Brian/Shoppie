@@ -43,9 +43,10 @@
       <div>
         <select id="filter" [(ngModel)]="filterBy" (change)="applyFilters()" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none bg-white">
           <option value="">All</option>
-          <option value="category1">Category 1</option>
-          <option value="category2">Category 2</option>
-          <option value="category3">Category 3</option>
+          <option value="category1">ELectronics</option>
+          <option value="category2">Furniture</option>
+          <option value="category3">Kitchen Ware</option>
+          <option value="category3">Fast Foods</option>
         </select>
       </div>
 
@@ -65,7 +66,7 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         <div *ngFor="let product of filteredProducts" class="bg-white rounded-lg shadow-md p-4 flex flex-col">
-          <img [src]="product.imageUrl" (error)="handleImageError($event)" alt="{{product.name}}" class="h-40 object-contain mb-4">
+          <img [src]="product.image" (error)="handleImageError($event)" alt="{{product.name}}" class="h-40 object-contain mb-4">
           <h3 class="text-lg font-semibold mb-2">{{ product.name }}</h3>
           <p class="text-gray-600 flex-grow">{{ product.description }}</p>
           <div class="mt-4 flex items-center justify-between">

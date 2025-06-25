@@ -127,7 +127,7 @@ export class Shop implements OnInit {
       name: product.name,
       price: product.price,
       quantity: 1,
-      imageUrl: product.imageUrl,
+      imageUrl: product.image,
     };
     // Assuming you have a CartService injected, add the product to the cart
     // If CartService is not injected, inject it in the constructor first

@@ -58,7 +58,7 @@ export class LandingPage implements OnInit {
       name: product.name,
       price: product.price,
       quantity: 1,
-      imageUrl: product.imageUrl,
+      imageUrl: product.image,
     };
     this.cartService.addToCart(cartItem);
     alert(`${product.name} has been added to your cart.`);

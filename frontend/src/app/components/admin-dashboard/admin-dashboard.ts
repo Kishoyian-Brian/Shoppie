@@ -1,12 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Product, ProductsService, CreateProductDto, UpdateProductDto } from '../../service/product.service';
+
 
 @Component({
   selector: 'app-admin-product',
   standalone: true,
   imports: [CommonModule, FormsModule],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './admin-dashboard.html',
   styleUrls: ['./admin-dashboard.css'],
 })
@@ -15,15 +17,19 @@ export class AdminProductComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
 
-  form: CreateProductDto | UpdateProductDto = {
+  categories: string[] = ['Electronics', 'Clothing', 'Books', 'Home', 'Sports'];
+
+  form: (CreateProductDto & { category: string }) | (UpdateProductDto & { category: string }) = {
     name: '',
     description: '',
     price: 0,
     imageUrl: '',
-    stockQuantity: 0
+    stockQuantity: 0,
+    category: ''
   };
   selectedProduct: Product | null = null;
   showModal = false;
+  showAddProductModal = false;
   imageFile: File | null = null;
 
   constructor(private productService: ProductsService) {}
@@ -54,15 +60,25 @@ export class AdminProductComponent implements OnInit {
       description: '',
       price: 0,
       imageUrl: '',
-      stockQuantity: 0
+      stockQuantity: 0,
+      category: ''
     };
     this.imageFile = null;
     this.showModal = true;
   }
 
+  closeAddModal(): void {
+    this.showModal = false;
+  }
+
+  onProductAdded(): void {
+    this.loadProducts();
+    this.closeAddModal();
+  }
+
   editProduct(product: Product): void {
     this.selectedProduct = product;
-    this.form = { ...product };
+    this.form = { ...product, category: (product as any).category || '' };
     this.imageFile = null;
     this.showModal = true;
   }
@@ -74,7 +90,8 @@ export class AdminProductComponent implements OnInit {
       description: '',
       price: 0,
       imageUrl: '',
-      stockQuantity: 0
+      stockQuantity: 0,
+      category: ''
     };
     this.selectedProduct = null;
     this.imageFile = null;
@@ -93,6 +110,7 @@ export class AdminProductComponent implements OnInit {
     formData.append('description', this.form.description || '');
     formData.append('price', this.form.price !== undefined ? this.form.price.toString() : '0');
     formData.append('stock', this.form.stockQuantity !== undefined ? this.form.stockQuantity.toString() : '0');
+    formData.append('category', this.form.category || '');
     if (this.imageFile) {
       formData.append('image', this.imageFile);
     }
