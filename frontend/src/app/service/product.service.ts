@@ -8,7 +8,7 @@ export interface Product {
   description: string;
   price: number;
   image?: string;
-  stockQuantity: number;
+  stock: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,7 +18,7 @@ export interface CreateProductDto {
   description: string;
   price: number;
   imageUrl?: string;
-  stockQuantity: number;
+  stock: number;
 }
 
 export interface UpdateProductDto {
@@ -26,14 +26,16 @@ export interface UpdateProductDto {
   description?: string;
   price?: number;
   imageUrl?: string;
-  stockQuantity?: number;
+  stock?: number;
 }
 
 export interface ApiResponse<T> {
-  success: boolean;
+  statusCode?: number;
+  success?: boolean;
   message: string;
   data?: T;
   error?: string;
+  timestamp?: string;
 }
 
 @Injectable({

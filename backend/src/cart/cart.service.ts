@@ -1,15 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { PrismaClient } from 'generated/prisma';
-import { ApiResponseService } from '../shared/api-response.services';
-import { AddToCartDto } from './dtos/add-to-cart.dto';
-import { UpdateCartItemDto } from './dtos/update-cart.dto';
+import { getPrismaClient } from '../prisma/prisma.service';
+import { AddToCartDto } from '../dto/add-to-cart.dto';
+import { UpdateCartItemDto } from '../dto/update.cart.dto';
 
 @Injectable()
 export class CartService {
-  constructor(
-    private prisma: PrismaClient,
-    private apiResponse: ApiResponseService,
-  ) {}
+  private prisma: PrismaClient = getPrismaClient();
 
   async getCart(userId: string) {
     try {
@@ -57,16 +54,9 @@ export class CartService {
         });
       }
 
-      return this.apiResponse.ok(
-        cart,
-        'Cart retrieved successfully',
-        '', // redirectUrl (empty if not needed)
-        cart, // data
-      );
+      return cart;
     } catch (error) {
-      return this.apiResponse.error(
-        'Failed to retrieve cart',
-        500,
+      throw new InternalServerErrorException(
         error instanceof Error ? error.message : String(error),
       );
     }
@@ -82,13 +72,11 @@ export class CartService {
       });
 
       if (!product) {
-        return this.apiResponse.notFound(
-          `Product with ID ${productId} not found`,
-        );
+        throw new NotFoundException(`Product with ID ${productId} not found`);
       }
 
       if (product.stock < quantity) {
-        return this.apiResponse.badRequest(
+        throw new BadRequestException(
           `Not enough stock. Only ${product.stock} available.`,
         );
       }
@@ -123,7 +111,7 @@ export class CartService {
 
         // Check if new quantity exceeds available stock
         if (newQuantity > product.stock) {
-          return this.apiResponse.badRequest(
+          throw new BadRequestException(
             `Cannot add ${quantity} more units. Only ${product.stock} available in total.`,
           );
         }
@@ -193,16 +181,9 @@ export class CartService {
         data: { totalPrice },
       });
 
-      return this.apiResponse.ok(
-        cartItem,
-        'Product added to cart successfully',
-        '', // redirectUrl
-        cartItem, // data
-      );
+      return cartItem;
     } catch (error) {
-      return this.apiResponse.error(
-        'Failed to add product to cart',
-        500,
+      throw new InternalServerErrorException(
         error instanceof Error ? error.message : String(error),
       );
     }
@@ -228,9 +209,7 @@ export class CartService {
       });
 
       if (!cartItem) {
-        return this.apiResponse.notFound(
-          `Cart item with ID ${itemId} not found`,
-        );
+        throw new NotFoundException(`Cart item with ID ${itemId} not found`);
       }
 
       const { quantity } = updateCartItemDto;
@@ -239,7 +218,7 @@ export class CartService {
 
       // Check if we have enough stock for the requested quantity
       if (product.stock < quantityDifference) {
-        return this.apiResponse.badRequest(
+        throw new BadRequestException(
           `Cannot increase quantity by ${quantityDifference}. Only ${product.stock} more available.`,
         );
       }
@@ -285,9 +264,7 @@ export class CartService {
       });
 
       if (!cart) {
-        return this.apiResponse.notFound(
-          `Cart with ID ${cartItem.cartId} not found`,
-        );
+        throw new NotFoundException(`Cart with ID ${cartItem.cartId} not found`);
       }
 
       const totalPrice = cart.CartItem.reduce(
@@ -300,16 +277,9 @@ export class CartService {
         data: { totalPrice },
       });
 
-      return this.apiResponse.ok(
-        updatedCartItem,
-        'Cart item updated successfully',
-        '', // redirectUrl
-        updatedCartItem, // data
-      );
+      return updatedCartItem;
     } catch (error) {
-      return this.apiResponse.error(
-        'Failed to update cart item',
-        500,
+      throw new InternalServerErrorException(
         error instanceof Error ? error.message : String(error),
       );
     }
@@ -328,9 +298,7 @@ export class CartService {
       });
 
       if (!cartItem) {
-        return this.apiResponse.notFound(
-          `Cart item with ID ${itemId} not found`,
-        );
+        throw new NotFoundException(`Cart item with ID ${itemId} not found`);
       }
 
       // Return item quantity to product stock
@@ -361,9 +329,7 @@ export class CartService {
       });
 
       if (!cart) {
-        return this.apiResponse.notFound(
-          `Cart with ID ${cartItem.cartId} not found`,
-        );
+        throw new NotFoundException(`Cart with ID ${cartItem.cartId} not found`);
       }
 
       const totalPrice = cart.CartItem.reduce(
@@ -376,16 +342,9 @@ export class CartService {
         data: { totalPrice },
       });
 
-      return this.apiResponse.ok(
-        null,
-        'Product removed from cart successfully',
-        '', // redirectUrl
-        null, // data
-      );
+      return null;
     } catch (error) {
-      return this.apiResponse.error(
-        'Failed to remove product from cart',
-        500,
+      throw new InternalServerErrorException(
         error instanceof Error ? error.message : String(error),
       );
     }
@@ -407,15 +366,8 @@ export class CartService {
       });
 
       if (!cart || cart.CartItem.length === 0) {
-        return this.apiResponse.ok(
-          null,
-          'Cart is already empty',
-          '', // redirectUrl
-          null, // data
-        );
+        return null;
       }
-
-      // Now TypeScript knows cart isn't null beyond this point
 
       // Return quantities to product stock
       for (const item of cart.CartItem) {
@@ -440,16 +392,9 @@ export class CartService {
         data: { totalPrice: 0 },
       });
 
-      return this.apiResponse.ok(
-        null,
-        'Cart cleared successfully',
-        '', // redirectUrl
-        null, // data
-      );
+      return null;
     } catch (error) {
-      return this.apiResponse.error(
-        'Failed to clear cart',
-        500,
+      throw new InternalServerErrorException(
         error instanceof Error ? error.message : String(error),
       );
     }

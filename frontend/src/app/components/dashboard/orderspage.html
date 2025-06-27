@@ -5,19 +5,19 @@
   </div>
   <div *ngFor="let order of orders" class="mb-6 border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
     <div class="flex justify-between font-semibold mb-3 text-gray-700">
-      <div>Order Number: {{ order.orderNumber }}</div>
-      <div>Status: <span class="capitalize">{{ order.status }}</span></div>
+      <div>Order ID: {{ order.id }}</div>
+      <div>Status: <span class="capitalize">{{ order.orderStatus }}</span></div>
       <div>Date: {{ order.createdAt | date:'mediumDate' }}</div>
-      <div>Total: ${{ order.totalAmount.toFixed(2) }}</div>
+      <div>Total: ${{ order.totalPrice.toFixed(2) }}</div>
     </div>
     <div class="border-t border-gray-100 pt-3">
-      <div *ngFor="let item of order.items" class="flex items-center mb-3">
-        <img [src]="item.image" alt="{{ item.productName }}" class="w-16 h-16 rounded-md object-cover mr-4" />
+      <div class="flex items-center mb-3">
+        <img [src]="order.product?.image" alt="{{ order.product?.name }}" class="w-16 h-16 rounded-md object-cover mr-4" />
         <div>
-          <div class="font-semibold text-lg">{{ item.productName }}</div>
-          <div class="text-gray-600">Quantity: {{ item.quantity }}</div>
-          <div class="text-gray-600">Price: ${{ item.price.toFixed(2) }}</div>
-          <div class="text-gray-600">Total: ${{ item.totalPrice.toFixed(2) }}</div>
+          <div class="font-semibold text-lg">{{ order.product?.name }}</div>
+          <div class="text-gray-600">Quantity: {{ order.quantity }}</div>
+          <div class="text-gray-600">Price: ${{ order.product?.price?.toFixed(2) }}</div>
+          <div class="text-gray-600">Total: ${{ order.totalPrice.toFixed(2) }}</div>
         </div>
       </div>
     </div>

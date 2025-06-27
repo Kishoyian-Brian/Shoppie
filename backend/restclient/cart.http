@@ -1,0 +1,33 @@
+@token = your_jwt_token_here
+@itemId = your_cart_item_id_here
+
+### Get cart items
+GET http://localhost:3000/cart
+Authorization: Bearer {{token}}
+
+### Add item to cart
+POST http://localhost:3000/cart/items
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "productId": "39f725bd-6e07-4012-89bb-5a8ee3be6e7f",
+  "quantity": 1
+}
+
+### Update cart item quantity
+PUT http://localhost:3000/cart/items/{{itemId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "quantity": 2
+}
+
+### Remove item from cart
+DELETE http://localhost:3000/cart/items/{{itemId}}
+Authorization: Bearer {{token}}
+
+### Clear cart
+DELETE http://localhost:3000/cart/clear
+Authorization: Bearer {{token}}

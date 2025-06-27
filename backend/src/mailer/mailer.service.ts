@@ -27,6 +27,12 @@ export interface PasswordResetContext {
   expiresIn: string;
 }
 
+export interface WelcomeEmailContext {
+  name: string;
+  email: string;
+  frontendUrl: string;
+}
+
 export interface OrderConfirmationContext {
   name: string;
   orderNumber: string;
@@ -128,6 +134,22 @@ export class MailerService {
     return this.sendEmail(emailOptions);
   }
 
+  async sendWelcomeEmail(
+    to: string,
+    context: WelcomeEmailContext,
+  ): Promise<{ success: boolean; messageId?: string; error?: string }> {
+    const emailOptions: EmailOptions = {
+      to,
+      subject: 'Welcome to Ashopie! 🎉',
+      template: 'welcome',
+      context: {
+        ...context,
+        frontendUrl: context.frontendUrl || this.configService.get<string>('FRONTEND_URL', 'http://localhost:4200'),
+      },
+    };
+    return this.sendEmail(emailOptions);
+  }
+
   async sendOrderConfirmationEmail(
     to: string,
     context: OrderConfirmationContext,
@@ -147,19 +169,6 @@ export class MailerService {
     return this.sendEmail(emailOptions);
   }
 
-  async sendRegistrationEmail(
-    to: string,
-    context: { name: string },
-  ): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    const emailOptions: EmailOptions = {
-      to,
-      subject: 'ShopieApp - Welcome to Shopie',
-      template: 'registration',
-      context,
-    };
-    return this.sendEmail(emailOptions);
-  }
-
   private async renderTemplate(
     templateName: string,
     context: Record<string, any>,
@@ -167,6 +176,7 @@ export class MailerService {
     try {
       const templateMap = {
         'password-reset': 'password_reset.ejs',
+        'welcome': 'welcome.ejs',
         'order-confirmation': 'order_confirmation.ejs',
       };
 

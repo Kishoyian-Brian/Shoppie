@@ -3,20 +3,18 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaClient } from 'generated/prisma';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
-import { ApiResponseService } from '../shared/api-response.services';
-import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
-import {
-  RequestPasswordResetDto,
-  ResetPasswordDto,
-} from './dto/reset-password.dto';
-import { LoginResponse } from './interfaces/login.interfaces';
-import { RegisterResponse } from './interfaces/register.interfaces';
+import { ApiResponseService } from '../shared/api-response.service';
+import { LoginDto } from '../dto/login.dto';
+import { RegisterDto } from '../dto/register.dto';
+import { ResetPasswordDto } from '../dto/reset-password.dto';
+import { RequestPasswordResetDto } from '../dto/request-password-reset.dto';
+import { LoginResponse } from '../interfaces/login-response.interface';
+import { RegisterResponse } from '../interfaces/register.interfaces';
 import {
   RequestResetResponse,
   ResetPasswordResponse,
-} from './interfaces/reset-password.interfaces';
-import { MailerService } from '../mailer/mailer.service';
+} from '../interfaces/reset-password.interfaces';
+import { MailerService, WelcomeEmailContext } from '../mailer/mailer.service';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -58,6 +56,26 @@ export class AuthService {
         },
       });
 
+      // Send welcome email
+      const welcomeEmailContext: WelcomeEmailContext = {
+        name: user.name || 'User',
+        email: user.email,
+        frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200',
+      };
+
+      const emailResult = await this.mailerService.sendWelcomeEmail(
+        user.email,
+        welcomeEmailContext,
+      );
+
+      if (!emailResult.success) {
+        this.logger.warn(
+          `Failed to send welcome email: ${emailResult.error}`,
+        );
+      } else {
+        this.logger.log(`Welcome email sent successfully to ${user.email}`);
+      }
+
       const response: RegisterResponse = {
         id: user.id,
         email: user.email,
@@ -65,11 +83,6 @@ export class AuthService {
         role: user.role,
         createdAt: user.createdAt,
       };
-
-      // Send registration email
-      await this.mailerService.sendRegistrationEmail(user.email, {
-        name: user.name ?? 'User',
-      });
 
       return this.apiResponse.created(response, 'User registered successfully');
     } catch (error) {
@@ -208,22 +221,17 @@ export class AuthService {
 
   async resetPassword(dto: ResetPasswordDto) {
     try {
-      // Find user by reset token
-      const user = await this.prisma.user.findFirst({
-        where: {
-          resetToken: dto.token,
-          resetTokenExpiry: {
-            gt: new Date(),
-          },
-        },
+      // Find user by ID
+      const user = await this.prisma.user.findUnique({
+        where: { id: dto.userId },
       });
 
       if (!user) {
-        return this.apiResponse.badRequest('Invalid or expired token');
+        return this.apiResponse.badRequest('User not found');
       }
 
       // Hash new password
-      const hashedPassword = await bcrypt.hash(dto.password, 10);
+      const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
 
       // Update user password and clear reset token
       await this.prisma.user.update({

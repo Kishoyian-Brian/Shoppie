@@ -2,95 +2,143 @@ import {
   Controller,
   Get,
   Post,
-  Body,
   Put,
-  Param,
   Delete,
-  Query,
+  Body,
+  Param,
+  HttpCode,
+  HttpStatus,
   UseGuards,
+  ValidationPipe,
+  Req,
   UseInterceptors,
   UploadedFile,
-  ParseFloatPipe,
-  ParseIntPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProductsService } from './products.service';
-import { UpdateProductDto } from './dtos/update-product.dto';
-import { SearchProductsDto } from './dtos/search-product.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-guard/jwt-guard.guard';
-import { RoleGuard } from '../auth/guards/role-guard/role-guard.guard';
-import { Roles } from '../auth/decorators/role.decorator';
-import { multerOptionsForMemory } from '../utils/file-uploads.utils';
+import { CreateProducts } from 'src/dto/create-product.dto';
+import { UpdateProducts } from 'src/dto/update-product.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { ApiResponseService } from '../shared/api-response.service';
+import { Request } from 'express';
+
+interface RequestWithUser extends Request {
+  user: {
+    id: string;
+    [key: string]: any;
+  };
+}
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    private readonly apiResponse: ApiResponseService,
+  ) {}
 
-  // Admin only - Create product with image upload
+  @UseGuards(JwtAuthGuard)
   @Post()
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles('ADMIN')
-  @UseInterceptors(FileInterceptor('image', multerOptionsForMemory))
-  create(
-    @Body('name') name: string,
-    @Body('description') description: string,
-    @Body('price', ParseFloatPipe) price: number,
-    @Body('stock', ParseIntPipe) stock: number,
-    @Body('category') category: string,
-    @Body('image') imageUrl?: string,
+  @UseInterceptors(FileInterceptor('image'))
+  async createProduct(
+    @Req() req: RequestWithUser,
+    @Body() createProductDto: any,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    const createProductDto = {
-      name,
-      description,
-      price,
-      stock,
-      category,
-      image: imageUrl,
-    };
-    return this.productsService.create(createProductDto, file);
+    try {
+      const productData = {
+        name: createProductDto.name,
+        description: createProductDto.description,
+        price: createProductDto.price,
+        stock: parseInt(createProductDto.stock) || 0,
+        image: createProductDto.image,
+        imageBuffer: file?.buffer,
+      };
+
+      const product = await this.productsService.createProduct(productData);
+      return this.apiResponse.created(product, 'Product created successfully');
+    } catch (error) {
+      return this.apiResponse.error(
+        'Failed to create product',
+        500,
+        error instanceof Error ? error.message : String(error),
+      );
+    }
   }
 
-  // Public - Get all products (with optional search)
   @Get()
-  findAll(@Query() searchProductsDto: SearchProductsDto) {
-    return this.productsService.findAll(searchProductsDto);
+  async findAll() {
+    try {
+      const products = await this.productsService.findAll();
+      return this.apiResponse.ok(products, 'Products retrieved successfully');
+    } catch (error) {
+      return this.apiResponse.error(
+        'Failed to retrieve products',
+        500,
+        error instanceof Error ? error.message : String(error),
+      );
+    }
   }
 
-  // Public - Search products
-  @Get('search')
-  search(
-    @Query('query') query: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-  ) {
-    return this.productsService.searchProducts(query, page, limit);
-  }
-
-  // Public - Get one product
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productsService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    try {
+      const product = await this.productsService.findOne(id);
+      return this.apiResponse.ok(product, 'Product retrieved successfully');
+    } catch (error) {
+      return this.apiResponse.error(
+        'Failed to retrieve product',
+        500,
+        error instanceof Error ? error.message : String(error),
+      );
+    }
   }
 
-  // Admin only - Update product with image upload
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles('ADMIN')
-  @UseInterceptors(FileInterceptor('image', multerOptionsForMemory))
-  update(
+  @UseInterceptors(FileInterceptor('image'))
+  async updateProduct(
+    @Req() req: RequestWithUser,
     @Param('id') id: string,
-    @Body() updateProductDto: UpdateProductDto,
+    @Body() updateProductDto: any,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    return this.productsService.update(id, updateProductDto, file);
+    try {
+      const productData = {
+        name: updateProductDto.name,
+        description: updateProductDto.description,
+        price: updateProductDto.price,
+        stock: parseInt(updateProductDto.stock) || 0,
+        image: updateProductDto.image,
+        imageBuffer: file?.buffer,
+      };
+
+      const updatedProduct = await this.productsService.updateProduct(
+        id,
+        productData,
+      );
+      return this.apiResponse.ok(updatedProduct, 'Product updated successfully');
+    } catch (error) {
+      return this.apiResponse.error(
+        'Failed to update product',
+        500,
+        error instanceof Error ? error.message : String(error),
+      );
+    }
   }
 
-  // Admin only - Delete product
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles('ADMIN')
-  remove(@Param('id') id: string) {
-    return this.productsService.remove(id);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteProduct(@Req() req: RequestWithUser, @Param('id') id: string) {
+    try {
+      await this.productsService.deleteProduct(id);
+      return this.apiResponse.ok(null, 'Product deleted successfully');
+    } catch (error) {
+      return this.apiResponse.error(
+        'Failed to delete product',
+        500,
+        error instanceof Error ? error.message : String(error),
+      );
+    }
   }
 }

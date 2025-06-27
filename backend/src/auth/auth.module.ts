@@ -1,19 +1,22 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { ApiResponseService } from 'src/shared/api-response.services';
-import { JwtAuthGuard } from './guards/jwt-guard/jwt-guard.guard';
-import { RoleGuard } from './guards/role-guard/role-guard.guard';
+import { UsersModule } from 'src/user/user.module';
+import { JwtModule } from '@nestjs/jwt';
+import { MailerModule } from 'src/mailer/mailer.module';
+import { ApiResponseService } from '../shared/api-response.service';
 import { PrismaClient } from 'generated/prisma';
-import { MailerModule } from '../mailer/mailer.module';
+import { getPrismaClient } from '../prisma/prisma.service';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Module({
   imports: [
-    ConfigModule,
+    PassportModule,
+    UsersModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET,
+      secret: process.env.JWT_SECRET || 'defaultSecretKey',
       signOptions: { expiresIn: '1h' },
     }),
     MailerModule,
@@ -21,12 +24,14 @@ import { MailerModule } from '../mailer/mailer.module';
   providers: [
     AuthService,
     ApiResponseService,
+    JwtStrategy,
     JwtAuthGuard,
-    RoleGuard,
-    PrismaClient,
-    ConfigService,
+    {
+      provide: PrismaClient,
+      useFactory: () => getPrismaClient(),
+    },
   ],
   controllers: [AuthController],
-  exports: [JwtAuthGuard, JwtModule, ConfigService],
+  exports: [JwtAuthGuard, JwtStrategy],
 })
 export class AuthModule {}

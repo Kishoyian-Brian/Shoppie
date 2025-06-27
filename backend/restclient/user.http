@@ -1,0 +1,22 @@
+@baseurl= http://localhost:3000
+@authToken = 
+
+
+###Get user profile
+GET {{baseurl}}/users/get-profile
+Authorization: Bearer {{authToken}}
+
+### Update user profile
+PUT {{baseurl}}/users/update-profile
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Brian Mwangi",
+  "email": "brian@gmail.com"
+}
+
+
+### Delete user account
+DELETE {{baseurl}}/users/delete
+Authorization: Bearer {{authToken}}

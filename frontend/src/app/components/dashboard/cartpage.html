@@ -1,21 +1,95 @@
 <div class="cart-container">
   <h2>Your Cart</h2>
-  <div *ngIf="cartItems.length === 0" class="empty-cart">
-    Your cart is empty.
+  
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="loading-spinner"></div>
+    <p>Loading your cart...</p>
   </div>
-  <div *ngFor="let item of cartItems" class="cart-item-card">
-    <div class="item-info">
-      <div class="item-name">{{ item.name }}</div>
-      <div class="item-price">\${{ item.price.toFixed(2) }}</div>
-      <div class="item-quantity">
-        Quantity:
-        <input type="number" [(ngModel)]="item.quantity" (change)="updateQuantity(item.productId, item.quantity)" min="0" />
+
+  <!-- Empty cart state -->
+  <div *ngIf="!isLoading && cartItems.length === 0" class="empty-cart">
+    <h3>Your cart is empty</h3>
+    <p>Add some products to get started!</p>
+    <button (click)="router.navigate(['/dashboard'])">Continue Shopping</button>
+  </div>
+
+  <!-- Cart items -->
+  <div *ngIf="!isLoading && cartItems.length > 0" class="cart-items">
+    <div *ngFor="let item of cartItems" class="cart-item-card">
+      <div class="item-image">
+        <img [src]="item.product?.image || item.imageUrl || 'assets/placeholder-product.jpg'" 
+             [alt]="item.product?.name || item.name || 'Product'" 
+             class="product-image">
+      </div>
+      
+      <div class="item-info">
+        <div class="item-name">{{ item.product?.name || item.name || 'Product' }}</div>
+        <div class="item-price">\${{ (item.product?.price || item.price || 0).toFixed(2) }}</div>
+        
+        <div class="item-quantity">
+          <label>Quantity:</label>
+          <div class="quantity-controls">
+            <button (click)="updateQuantity(item.id || item.productId, item.quantity - 1)" 
+                    [disabled]="item.quantity <= 1"
+                    class="quantity-btn">-</button>
+            <span class="quantity-display">{{ item.quantity }}</span>
+            <button (click)="updateQuantity(item.id || item.productId, item.quantity + 1)" 
+                    class="quantity-btn">+</button>
+          </div>
+        </div>
+        
+        <div class="item-total">
+          Total: \${{ ((item.product?.price || item.price || 0) * item.quantity).toFixed(2) }}
+        </div>
+      </div>
+      
+      <div class="item-actions">
+        <button (click)="removeFromCart(item.id || item.productId)" 
+                class="remove-btn"
+                title="Remove item">
+          Remove
+        </button>
+      </div>
+    </div>
+
+    <!-- Cart summary -->
+    <div class="cart-summary">
+      <div class="summary-row">
+        <span>Items: {{ getCartItemCount() }}</span>
+        <span>Total: \${{ getCartTotal().toFixed(2) }}</span>
+      </div>
+      
+      <!-- Guest user message -->
+      <div *ngIf="!isLoggedIn()" class="guest-message">
+        <p>You're shopping as a guest. <a routerLink="/login" class="login-link">Log in</a> to place orders and save your cart.</p>
+      </div>
+      
+      <div class="cart-actions">
+        <button (click)="clearCart()" 
+                class="clear-cart-btn"
+                [disabled]="isPlacingOrder">
+          Clear Cart
+        </button>
+        <button (click)="placeOrder()" 
+                [disabled]="isPlacingOrder || isCartEmpty() || !isLoggedIn()"
+                class="place-order-btn"
+                [class.disabled]="!isLoggedIn()">
+          <span *ngIf="!isPlacingOrder && isLoggedIn()">Place Order</span>
+          <span *ngIf="!isPlacingOrder && !isLoggedIn()">Login to Order</span>
+          <span *ngIf="isPlacingOrder">Placing Order...</span>
+        </button>
       </div>
     </div>
   </div>
-  <div class="order-actions" *ngIf="cartItems.length > 0">
-    <button (click)="placeOrder()" [disabled]="isPlacingOrder">Place Order</button>
+
+  <!-- Success/Error messages -->
+  <div class="message-container">
+    <div class="order-success" *ngIf="orderSuccessMessage">
+      {{ orderSuccessMessage }}
+    </div>
+    <div class="order-error" *ngIf="orderErrorMessage">
+      {{ orderErrorMessage }}
+    </div>
   </div>
-  <div class="order-success" *ngIf="orderSuccessMessage">{{ orderSuccessMessage }}</div>
-  <div class="order-error" *ngIf="orderErrorMessage">{{ orderErrorMessage }}</div>
 </div>

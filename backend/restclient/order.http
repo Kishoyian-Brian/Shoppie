@@ -1,0 +1,34 @@
+@baseurl=http://localhost:3000
+@authToken=
+
+### Create Order
+POST {{baseurl}}/order
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "productId": "product-id-placeholder",
+  "quantity": 1,
+  "totalPrice": 100.0
+}
+
+### Get User Orders
+GET {{baseurl}}/order
+Authorization: Bearer {{authToken}}
+
+### Get Order By ID
+GET {{baseurl}}/order/replace_order_id_here
+Authorization: Bearer {{authToken}}
+
+### Update Order Status
+PUT {{baseurl}}/order/replace_order_id_here/status
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "status": "COMPLETED"
+}
+
+### Cancel Order
+DELETE {{baseurl}}/order/replace_order_id_here
+Authorization: Bearer {{authToken}}

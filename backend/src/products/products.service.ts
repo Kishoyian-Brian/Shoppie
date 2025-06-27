@@ -1,110 +1,61 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Injectable } from '@nestjs/common';
-import { PrismaClient } from 'generated/prisma';
-import { ApiResponseService } from '../shared/api-response.services';
-import {
-  CloudinaryService,
-  ShopieUploadType,
-} from '../cloudinary/cloudinary.service';
-import { CreateProductDto } from './dtos/create-product.dto';
-import { UpdateProductDto } from './dtos/update-product.dto';
-import { SearchProductsDto } from './dtos/search-product.dto';
-import { ApiResponse } from '../shared/interfaces/api-response.interfaces';
-import { Product } from './interfaces/product.interfaces';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { getPrismaClient } from 'src/prisma/prisma.service';
+import { CreateProducts } from 'src/dto/create-product.dto';
+import { UpdateProducts } from 'src/dto/update-product.dto';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Injectable()
 export class ProductsService {
-  constructor(
-    private prisma: PrismaClient,
-    private apiResponse: ApiResponseService,
-    private cloudinaryService: CloudinaryService,
-  ) {}
+  private prisma = getPrismaClient();
 
-  async create(createProductDto: CreateProductDto, file?: Express.Multer.File) {
+  constructor(private readonly cloudinaryService: CloudinaryService) {}
+
+  async createProduct(data: CreateProducts & { imageBuffer?: Buffer }) {
     try {
-      // Ensure createProductDto.image has a type
-      let productImage: string | undefined = createProductDto.image;
+      // Ensure price is a number
+      const price = typeof data.price === 'string' ? parseFloat(data.price) : data.price;
 
-      // If file is provided, upload it to Cloudinary
-      if (file) {
-        const uploadResult = await this.cloudinaryService.uploadFile(
-          file,
-          ShopieUploadType.PRODUCT_IMAGE,
-        );
-        if (!uploadResult || !uploadResult.secure_url) {
-          return this.apiResponse.error('Failed to upload product image', 500);
-        }
-        productImage = uploadResult.secure_url;
-      }
-
-      // If no image is provided (neither URL nor file)
-      if (!productImage) {
-        return this.apiResponse.badRequest('Product image is required');
+      let imageUrl = data.image;
+      
+      // If we have an image buffer, upload it to Cloudinary
+      if (data.imageBuffer) {
+        imageUrl = await this.cloudinaryService.uploadImageBuffer(data.imageBuffer, 'product-image');
       }
 
       const product = await this.prisma.product.create({
         data: {
-          ...createProductDto,
-          image: productImage,
+          name: data.name,
+          description: data.description,
+          price: price,
+          image: imageUrl,
+          stock: data.stock ?? 0,
         },
       });
-
-      return this.apiResponse.created(product, 'Product created successfully');
-    } catch (error: unknown) {
-      return this.apiResponse.error(
-        'Failed to create product',
-        500,
-        error instanceof Error ? error.message : String(error),
-      );
+      return product;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          'Error creating product: ' + error.message,
+        );
+      }
+      throw new InternalServerErrorException('Error creating product');
     }
   }
 
-  async findAll(
-    params: SearchProductsDto = {},
-  ): Promise<ApiResponse<Product[]>> {
+  async findAll() {
     try {
-      const { page = 1, limit = 10, query } = params;
-      const skip = (page - 1) * limit;
-
-      let whereClause = {};
-      if (query) {
-        whereClause = {
-          OR: [
-            { name: { contains: query, mode: 'insensitive' } },
-            { description: { contains: query, mode: 'insensitive' } },
-          ],
-        };
-      }``
-
-      const [dbProducts, total] = await Promise.all([
-        this.prisma.product.findMany({
-          where: whereClause,
-          skip,
-          take: limit,
-          orderBy: { createdAt: 'desc' },
-        }),
-        this.prisma.product.count({ where: whereClause }),
-      ]);
-
-      // Transform products to ensure description is never null
-      const products = dbProducts.map((p) => ({
-        ...p,
-        description: p.description || '', // Convert null to empty string
-      }));
-
-      const totalPages = Math.ceil(total / limit);
-
-      return this.apiResponse.paginate(
-        products,
-        { page, limit, total, totalPages },
-        'Products retrieved successfully',
-      );
-    } catch (error: unknown) {
-      return this.apiResponse.error(
-        'Failed to retrieve products',
-        500,
-        error instanceof Error ? error.message : String(error),
-      );
+      const products = await this.prisma.product.findMany({
+        orderBy: { id: 'asc' },
+      });
+      return products;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          'Failed to find products: ' + error.message,
+        );
+      }
+      throw new InternalServerErrorException('Failed to find products');
     }
   }
 
@@ -113,134 +64,107 @@ export class ProductsService {
       const product = await this.prisma.product.findUnique({
         where: { id },
       });
-
       if (!product) {
-        return this.apiResponse.notFound(`Product with ID ${id} not found`);
+        throw new InternalServerErrorException(
+          'Product with id ' + id + ' not found',
+        );
       }
-
-      return this.apiResponse.ok(
-        product,
-        'Product retrieved successfully',
-        '', // redirectUrl (empty if not needed)
-        product, // data
-      );
-    } catch (error: unknown) {
-      return this.apiResponse.error(
-        'Failed to retrieve product',
-        500,
-        error instanceof Error ? error.message : String(error),
-      );
+      return product;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          'Failed to find product: ' + error.message,
+        );
+      }
+      throw new InternalServerErrorException('Failed to find product');
     }
   }
 
-  async update(
-    id: string,
-    updateProductDto: UpdateProductDto,
-    file?: Express.Multer.File,
-  ) {
+  async updateProduct(id: string, data: UpdateProducts & { imageBuffer?: Buffer }) {
     try {
-      const product = await this.prisma.product.findUnique({
-        where: { id },
-      });
+      // Ensure price is a number if provided
+      const price = data.price
+        ? typeof data.price === 'string'
+          ? parseFloat(data.price)
+          : data.price
+        : undefined;
 
-      if (!product) {
-        return this.apiResponse.notFound(`Product with ID ${id} not found`);
+      let imageUrl = data.image;
+      
+      // If we have an image buffer, upload it to Cloudinary
+      if (data.imageBuffer) {
+        imageUrl = await this.cloudinaryService.uploadImageBuffer(data.imageBuffer, 'product-image');
       }
 
-      let newImage = updateProductDto.image;
-
-      // If file is provided, upload it to Cloudinary
-      if (file) {
-        const uploadResult = await this.cloudinaryService.uploadFile(
-          file,
-          ShopieUploadType.PRODUCT_IMAGE,
-          {
-            entityId: id,
-            entityType: 'product',
-          },
-        );
-        if (!uploadResult || !uploadResult.secure_url) {
-          return this.apiResponse.error('Failed to upload product image', 500);
-        }
-        newImage = uploadResult.secure_url;
-
-        // If the product already had an image, delete the old one
-        if (product.image && product.image.includes('cloudinary')) {
-          // Extract public ID and delete old image
-          const publicId = this.cloudinaryService.extractPublicIdFromUrl(
-            product.image,
-          );
-          if (publicId) {
-            await this.cloudinaryService.deleteFile(publicId);
-          }
-        }
-      }
+      const updateData = {
+        name: data.name,
+        description: data.description,
+        price: price,
+        stock: data.stock,
+        image: imageUrl,
+      };
 
       const updatedProduct = await this.prisma.product.update({
         where: { id },
-        data: {
-          ...updateProductDto,
-          ...(newImage && { image: newImage }),
-        },
+        data: updateData,
       });
-
-      return this.apiResponse.ok(
-        updatedProduct,
-        'Product updated successfully',
-        '', // redirectUrl (empty string if not needed)
-        updatedProduct, // data
-      );
-    } catch (error: unknown) {
-      return this.apiResponse.error(
-        'Failed to update product',
-        500,
-        error instanceof Error ? error.message : String(error),
-      );
+      return updatedProduct;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          'Failed to update product: ' + error.message,
+        );
+      }
+      throw new InternalServerErrorException('Failed to update product');
     }
   }
 
-  async remove(id: string) {
+  async deleteProduct(id: string) {
     try {
-      const product = await this.prisma.product.findUnique({
+      await this.prisma.product.delete({
         where: { id },
       });
-
-      if (!product) {
-        return this.apiResponse.notFound(`Product with ID ${id} not found`);
-      }
-
-      // Delete image from Cloudinary if it exists
-      if (product.image && product.image.includes('cloudinary')) {
-        const publicId = this.cloudinaryService.extractPublicIdFromUrl(
-          product.image,
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          'Failed to delete product: ' + error.message,
         );
-        if (publicId) {
-          await this.cloudinaryService.deleteFile(publicId);
-        }
       }
+      throw new InternalServerErrorException('Failed to delete product');
+    }
+  }
 
-      await this.prisma.product.delete({ where: { id } });
-
-      return this.apiResponse.ok(
-        null,
-        'Product deleted successfully',
-        '', // redirectUrl
-        null, // data
-      );
-    } catch (error: unknown) {
-      return this.apiResponse.error(
-        'Failed to delete product',
-        500,
-        error instanceof Error ? error.message : String(error),
+  async findByPriceRange(minPrice: number, maxPrice: number) {
+    try {
+      const products = await this.prisma.product.findMany({
+        where: {
+          price: {
+            gte: minPrice,
+            lte: maxPrice,
+          },
+        },
+        orderBy: { price: 'asc' },
+      });
+      return products;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Failed to find products by price range',
       );
     }
   }
 
-  async searchProducts(
-    query: string,
-    page = 1,
-    limit = 10,
-  ): Promise<ApiResponse<Product[]>> {
-    return this.findAll({ query, page, limit });
+  async findWithPagination(skip: number, take: number) {
+    try {
+      const products = await this.prisma.product.findMany({
+        skip,
+        take,
+        orderBy: { id: 'asc' },
+      });
+      return products;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Failed to find products with pagination',
+      );
+    }
   }
 }

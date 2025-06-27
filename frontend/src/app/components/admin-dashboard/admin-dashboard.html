@@ -11,6 +11,7 @@
     <table class="w-full text-left border-collapse table-auto">
       <thead>
         <tr class="border-b border-gray-200">
+          <th class="px-4 py-2">Image</th>
           <th class="px-4 py-2">Name</th>
           <th class="px-4 py-2">Price</th>
           <th class="px-4 py-2">Stock</th>
@@ -19,10 +20,15 @@
       </thead>
       <tbody>
         <tr *ngFor="let product of products" class="border-b hover:bg-gray-50">
+          <td class="px-4 py-2">
+            <img *ngIf="product.image" [src]="product.image" alt="{{ product.name }}" class="w-16 h-16 object-cover rounded" />
+            <span *ngIf="!product.image" class="text-gray-400">No image</span>
+          </td>
           <td class="px-4 py-2">{{ product.name }}</td>
           <td class="px-4 py-2">${{ product.price | number:'1.2-2' }}</td>
-          <td class="px-4 py-2">{{ product.stockQuantity }}</td>
+          <td class="px-4 py-2">{{ product.stock }}</td>
           <td class="px-4 py-2 space-x-2">
+            <button class="text-blue-600 hover:underline" (click)="viewProduct(product)">View</button>
             <button class="text-blue-600 hover:underline" (click)="editProduct(product)">Edit</button>
             <button class="text-red-600 hover:underline" (click)="deleteProduct(product.id)">Delete</button>
           </td>
@@ -51,8 +57,8 @@
       <label for="price">Price</label>
       <input id="price" type="number" [(ngModel)]="form.price" name="price" required class="w-full px-4 py-2 border rounded" />
 
-      <label for="stockQuantity">Stock Quantity</label>
-      <input id="stockQuantity" type="number" [(ngModel)]="form.stockQuantity" name="stockQuantity" required class="w-full px-4 py-2 border rounded" />
+      <label for="stock">Stock Quantity</label>
+      <input id="stock" type="number" [(ngModel)]="form.stock" name="stock" required class="w-full px-4 py-2 border rounded" />
 
       <label for="category">Category</label>
       <select id="category" [(ngModel)]="form.category" name="category" required class="w-full px-4 py-2 border rounded">
@@ -62,6 +68,10 @@
 
       <label for="image">Product Image</label>
       <input id="image" type="file" (change)="onFileSelected($event)" accept="image/*" class="w-full px-4 py-2 border rounded" />
+      <div *ngIf="form.image && !imageFile" class="mt-2">
+        <img [src]="form.image" alt="Current Image" class="w-32 h-32 object-cover rounded border" />
+        <div class="text-xs text-gray-500">Current image</div>
+      </div>
 
       <div class="flex justify-end mt-4 space-x-2">
         <button type="button" (click)="closeModal()" class="px-4 py-2 bg-gray-300 rounded">Cancel</button>
@@ -71,4 +81,4 @@
       </div>
     </form>
   </div>
-</div>
+</div> 

@@ -6,13 +6,13 @@ import {
   Put,
   Param,
   Delete,
-  UseGuards,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { CartService } from './cart.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-guard/jwt-guard.guard';
-import { AddToCartDto } from './dtos/add-to-cart.dto';
-import { UpdateCartItemDto } from './dtos/update-cart.dto';
+import { AddToCartDto } from '../dto/add-to-cart.dto';
+import { UpdateCartItemDto } from '../dto/update.cart.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 
 interface RequestWithUser extends Request {
@@ -29,11 +29,21 @@ export class CartController {
 
   @Get()
   getCart(@Req() req: RequestWithUser) {
+    console.log('Cart GET request - req.user:', req.user);
+    console.log('Cart GET request - req:', req);
+    if (!req.user) {
+      throw new Error('User not authenticated');
+    }
     return this.cartService.getCart(req.user.id);
   }
 
   @Post('items')
   addToCart(@Req() req: RequestWithUser, @Body() addToCartDto: AddToCartDto) {
+    console.log('Cart POST request - req.user:', req.user);
+    console.log('Cart POST request - req:', req);
+    if (!req.user) {
+      throw new Error('User not authenticated');
+    }
     return this.cartService.addToCart(req.user.id, addToCartDto);
   }
 
@@ -51,7 +61,7 @@ export class CartController {
     return this.cartService.removeFromCart(req.user.id, id);
   }
 
-  @Delete()
+  @Delete('clear')
   clearCart(@Req() req: RequestWithUser) {
     return this.cartService.clearCart(req.user.id);
   }

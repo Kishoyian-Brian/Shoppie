@@ -1,11 +1,13 @@
 import { Routes } from '@angular/router';
 import { LandingPage } from './components/landingpage/landingpage';
-import { AdminProductComponent } from './components/admin-dashboard/admin-dashboard';
 import { Login } from './components/login/login';
-import { Shop } from './components/shop/shop';
 import { CartPage } from './components/dashboard/cartpage';
 import { Dashboard } from './components/dashboard/dashboard';
 import { PaymentPage } from './components/dashboard/paymentpage';
+import { Orders } from './components/orders/orders';
+import { AuthGuard } from './components/guards/auth.guard';
+import { RoleGuard } from './components/guards/role.guard';
+import { AdminProductComponent } from './components/admin-dashboard/admin-dashboard';
 
 export const routes: Routes = [
   {
@@ -19,28 +21,43 @@ export const routes: Routes = [
   },
   {
     path: 'shop',
-    component: Shop,
+    redirectTo: 'dashboard',
+    pathMatch: 'full'
   },
   {
     path: 'admin-dashboard',
-    component: AdminProductComponent
-    
+    component: AdminProductComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['admin'] }
   },
   {
     path: 'dashboard',
     component: Dashboard,
+    canActivate: [AuthGuard]
   },
   {
     path: 'dashboard/cart',
     component: CartPage,
+    canActivate: [AuthGuard]
   },
   {
     path: 'dashboard/payment',
     component: PaymentPage,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'dashboard/orders',
+    component: Orders,
+    canActivate: [AuthGuard]
   },
   {
     path: 'login',
     component: Login,
+  },
+  {
+    path: 'orders',
+    component: Orders,
+    canActivate: [AuthGuard]
   },
   {
     path: '**',

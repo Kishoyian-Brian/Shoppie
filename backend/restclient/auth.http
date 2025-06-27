@@ -1,0 +1,42 @@
+authToken =
+
+### Register admin user
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "email": "brianmwasbayo@gmail.com",
+  "password": "Brian@2222",
+  "name": "Admin user",
+  "role": "ADMIN"
+}
+
+### Register a user
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "email": "mail@gmail.com",
+  "password": "12345678",
+  "name": "Brian",
+  "role": "USER"
+}
+
+### Login
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "brianmwangiat033@gmail.com",
+  "password": "brianmwasbayo@gmail.com"
+}
+
+### Reset Password
+POST http://localhost:3000/auth/reset-password
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "userId": "2dd6ece0-ad03-47b3-8ddb-301ede8f7fa7",
+  "newPassword": "juma"
+}

@@ -2,7 +2,7 @@ import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Product, ProductsService, CreateProductDto, UpdateProductDto } from '../../service/product.service';
-
+import { ProductEventsService } from '../../service/product-events.service';
 
 @Component({
   selector: 'app-admin-product',
@@ -10,7 +10,6 @@ import { Product, ProductsService, CreateProductDto, UpdateProductDto } from '..
   imports: [CommonModule, FormsModule],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './admin-dashboard.html',
-  styleUrls: ['./admin-dashboard.css'],
 })
 export class AdminProductComponent implements OnInit {
   products: Product[] = [];
@@ -19,20 +18,20 @@ export class AdminProductComponent implements OnInit {
 
   categories: string[] = ['Electronics', 'Clothing', 'Books', 'Home', 'Sports'];
 
-  form: (CreateProductDto & { category: string }) | (UpdateProductDto & { category: string }) = {
+  form: (CreateProductDto & { category: string; image?: string }) | (UpdateProductDto & { category: string; image?: string }) = {
     name: '',
     description: '',
     price: 0,
     imageUrl: '',
-    stockQuantity: 0,
-    category: ''
+    stock: 0,
+    category: '',
+    image: ''
   };
   selectedProduct: Product | null = null;
   showModal = false;
-  showAddProductModal = false;
   imageFile: File | null = null;
 
-  constructor(private productService: ProductsService) {}
+  constructor(private productService: ProductsService, private productEventsService: ProductEventsService) {}
 
   ngOnInit(): void {
     this.loadProducts();
@@ -60,25 +59,10 @@ export class AdminProductComponent implements OnInit {
       description: '',
       price: 0,
       imageUrl: '',
-      stockQuantity: 0,
-      category: ''
+      stock: 0,
+      category: '',
+      image: ''
     };
-    this.imageFile = null;
-    this.showModal = true;
-  }
-
-  closeAddModal(): void {
-    this.showModal = false;
-  }
-
-  onProductAdded(): void {
-    this.loadProducts();
-    this.closeAddModal();
-  }
-
-  editProduct(product: Product): void {
-    this.selectedProduct = product;
-    this.form = { ...product, category: (product as any).category || '' };
     this.imageFile = null;
     this.showModal = true;
   }
@@ -90,26 +74,55 @@ export class AdminProductComponent implements OnInit {
       description: '',
       price: 0,
       imageUrl: '',
-      stockQuantity: 0,
-      category: ''
+      stock: 0,
+      category: '',
+      image: ''
     };
     this.selectedProduct = null;
     this.imageFile = null;
   }
 
+  editProduct(product: Product): void {
+    this.selectedProduct = product;
+    this.form = { ...product, category: (product as any).category || '', image: (product as any).image || '' };
+    this.imageFile = null;
+    this.showModal = true;
+  }
+
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.imageFile = input.files[0];
+      const file = input.files[0];
+      
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Please select a valid image file (JPG, PNG, or WebP)');
+        input.value = '';
+        return;
+      }
+      
+      // Validate file size (5MB limit)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        alert('File size must be less than 5MB');
+        input.value = '';
+        return;
+      }
+      
+      this.imageFile = file;
     }
   }
 
   onSubmit(): void {
+    if (this.isLoading) return; // Prevent multiple submissions
+    
+    this.isLoading = true;
     const formData = new FormData();
     formData.append('name', this.form.name || '');
     formData.append('description', this.form.description || '');
     formData.append('price', this.form.price !== undefined ? this.form.price.toString() : '0');
-    formData.append('stock', this.form.stockQuantity !== undefined ? this.form.stockQuantity.toString() : '0');
+    formData.append('stock', this.form.stock !== undefined ? this.form.stock.toString() : '0');
     formData.append('category', this.form.category || '');
     if (this.imageFile) {
       formData.append('image', this.imageFile);
@@ -121,8 +134,19 @@ export class AdminProductComponent implements OnInit {
         next: () => {
           this.loadProducts();
           this.closeModal();
+          this.isLoading = false;
         },
-        error: () => alert('Failed to update product')
+        error: (err) => {
+          console.error('Update product error:', err);
+          let errorMessage = 'Failed to update product';
+          if (err.error?.message) {
+            errorMessage = err.error.message;
+          } else if (err.error?.error) {
+            errorMessage = err.error.error;
+          }
+          alert(errorMessage);
+          this.isLoading = false;
+        }
       });
     } else {
       // create
@@ -130,8 +154,21 @@ export class AdminProductComponent implements OnInit {
         next: () => {
           this.loadProducts();
           this.closeModal();
+          this.isLoading = false;
+          // Notify other components that a product was added
+          this.productEventsService.notifyProductAdded();
         },
-        error: () => alert('Failed to add product')
+        error: (err) => {
+          console.error('Add product error:', err);
+          let errorMessage = 'Failed to add product';
+          if (err.error?.message) {
+            errorMessage = err.error.message;
+          } else if (err.error?.error) {
+            errorMessage = err.error.error;
+          }
+          alert(errorMessage);
+          this.isLoading = false;
+        }
       });
     }
   }
@@ -147,4 +184,9 @@ export class AdminProductComponent implements OnInit {
       },
     });
   }
-}
+
+  viewProduct(product: Product): void {
+    this.selectedProduct = product;
+    // Optionally, you can show a product details modal here
+  }
+} 

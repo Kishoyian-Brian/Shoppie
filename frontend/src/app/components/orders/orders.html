@@ -1,1 +1,96 @@
-<p>orders works!</p>
+<div class="orders-container">
+  <!-- Header -->
+  <div class="header">
+    <button (click)="goBack()" class="back-btn">
+      Back to Dashboard
+    </button>
+    <h1>My Orders</h1>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="loading-spinner"></div>
+    <p>Loading your orders...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage" class="error-state">
+    <p>{{ errorMessage }}</p>
+    <button (click)="loadOrders()" class="retry-btn">Try Again</button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && !errorMessage && orders.length === 0" class="empty-state">
+    <h3>No Orders Yet</h3>
+    <p>You haven't placed any orders yet. Start shopping to see your order history here!</p>
+    <button (click)="goBack()" class="shop-btn">Start Shopping</button>
+  </div>
+
+  <!-- Orders List -->
+  <div *ngIf="!isLoading && !errorMessage && orders.length > 0" class="orders-list">
+    <div *ngFor="let order of orders" class="order-card">
+      <div class="order-header">
+        <div class="order-info">
+          <h3 class="order-id">Order #{{ order.id.slice(-8) }}</h3>
+          <p class="order-date">{{ formatDate(order.createdAt) }}</p>
+        </div>
+        <div class="order-status">
+          <span [class]="'status-badge ' + getStatusColor(order.orderStatus)">
+            {{ order.orderStatus }}
+          </span>
+        </div>
+      </div>
+
+      <div class="order-content">
+        <div class="product-info">
+          <img 
+            [src]="order.product?.image || 'assets/placeholder-product.jpg'" 
+            [alt]="order.product?.name || 'Product'"
+            class="product-image"
+          >
+          <div class="product-details">
+            <h4 class="product-name">{{ order.product?.name || 'Product' }}</h4>
+            <p class="product-description">{{ order.product?.description || 'No description available' }}</p>
+            <div class="product-meta">
+              <span class="quantity">Quantity: {{ order.quantity }}</span>
+              <span class="price">\${{ order.product?.price?.toFixed(2) || '0.00' }} each</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="order-total">
+          <span class="total-label">Total:</span>
+          <span class="total-amount">\${{ order.totalPrice.toFixed(2) }}</span>
+        </div>
+      </div>
+
+      <div class="order-actions">
+        <button 
+          *ngIf="order.orderStatus === 'PENDING'"
+          (click)="cancelOrder(order.id)"
+          class="cancel-btn"
+        >
+          Cancel Order
+        </button>
+        <button 
+          (click)="viewOrderDetails(order.id)"
+          class="details-btn"
+        >
+          View Details
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div *ngIf="!isLoading && !errorMessage && orders.length > 0" class="orders-summary">
+    <div class="summary-item">
+      <span class="summary-label">Total Orders:</span>
+      <span class="summary-value">{{ orders.length }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">Total Spent:</span>
+      <span class="summary-value">\${{ getTotalSpent().toFixed(2) }}</span>
+    </div>
+  </div>
+</div>
